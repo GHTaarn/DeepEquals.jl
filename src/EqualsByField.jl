@@ -2,17 +2,6 @@ module EqualsByField
 
 export equalsbyfield, ≗
 
-function equalsbyfield_old(a, b)
-    fna = fieldnames(typeof(a))
-    fnb = fieldnames(typeof(b))
-    fna != fnb && return false
-    isempty(fna) && return a == b
-    for fn in fna
-        equalsbyfield(getfield(a, fn), getfield(b, fn)) || return false
-    end
-    return true
-end
-
 """
     equalsbyfield(equals, a, b; recursive=true, typeequality=(x,y)->typeof(x)==typeof(y))
 
@@ -78,7 +67,6 @@ equalsbyfield(a, b; recursive=true) = equalsbyfield(==, a, b; recursive)
 
 const opsettings = Dict((:equals=>(==), :recursive=>true, :typeequality=>(x,y)->typeof(x)==typeof(y)))
 
-≒(a, b) = equalsbyfield(a, b)
 ≗(a, b) = equalsbyfield(opsettings[:equals], a, b; recursive=opsettings[:recursive], typeequality=opsettings[:typeequality])
 
 end # module EqualsByField
