@@ -63,10 +63,20 @@ function equalsbyfield(equals, a, b; recursive=true, typeequality=(x,y)->typeof(
     return true
 end
 
+"""
+    equalsbyfield(a, b; recursive=true)
+
+Equivalent to `equalsbyfield(==, a, b; recursive)`
+"""
 equalsbyfield(a, b; recursive=true) = equalsbyfield(==, a, b; recursive)
 
 const opsettings = Dict((:equals=>(==), :recursive=>true, :typeequality=>(x,y)->typeof(x)==typeof(y)))
 
+"""
+    ≗(a, b)
+
+Shorthand for `equalsbyfield(EqualsByField.opsettings[:equals], a, b; recursive=EqualsByField.opsettings[:recursive], typeequality=EqualsByField.opsettings[:typeequality])`
+"""
 ≗(a, b) = equalsbyfield(opsettings[:equals], a, b; recursive=opsettings[:recursive], typeequality=opsettings[:typeequality])
 
 end # module EqualsByField
