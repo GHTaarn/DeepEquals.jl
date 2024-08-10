@@ -10,12 +10,15 @@ The return value is determined from the following sequence:
 
  1. Return `true` if `equals(a,b)`
  2. Return `false` if `!typeequality(a,b)`
- 3. Return `false` if either `a` or `b` has no fields
- 4. Return `false` if `a` and `b` have different fields
+ 3. Return `false` if `a` and `b` have different fields
+ 4. If `a` and `b` have no fields then attempt to compare as iterables or return `false`
  5. Return `false` if applying `equalsbyfield` on any field in `a` and `b` returns `false`
  6. If none of the above, return `true`
 
 If `recursive==false`, `equals` instead of `equalsbyfield` is applied in step 5
+
+Step 4 works on built in `Array` types, but it is best to check the source code
+if other iterables are used.
 
 ## Example
 
@@ -50,7 +53,16 @@ function equalsbyfield(equals, a, b; recursive=true, typeequality=(x,y)->typeof(
     fna = fieldnames(typeof(a))
     fnb = fieldnames(typeof(b))
     issetequal(fna, fnb) || return false
-    isempty(fna) && return false # This assumes !equals(a,b) which should be the case for immutables and a decent equals function
+    if isempty(fna)
+        all(hasmethod(iterate, (typeof(x),)) for x in [a,b]) || return false
+        all(hasmethod(axes, (typeof(x),)) for x in [a,b]) || return false
+        axes(a) == axes(b) || return false
+        if recursive
+            return all(equalsbyfield(equals, x, y; typeequality) for (x,y) in zip(a,b))
+        else
+            return all(equals(x, y) for (x,y) in zip(a,b))
+        end
+    end
     if recursive
         for fn in fna
             equalsbyfield(equals, getfield(a, fn), getfield(b, fn); typeequality) || return false
