@@ -64,6 +64,36 @@ function equalsbyfield(equals, a, b; recursive=true, typeequality=(x,y)->typeof(
 end
 
 """
+    equalsbyfield(equals, a::AbstractArray, b::AbstractArray; recursive=true, typeequality=(x,y)->typeof(x)==typeof(y))
+
+Test for equality of `a` and `b` in a customisable way.
+The return value is determined from the following sequence:
+
+ 1. Return `true` if `equals(a,b)`
+ 2. Return `false` if `!typeequality(a,b)`
+ 3. Return `false` if there is no `axes` or `iterate` method for either `a` or `b`
+ 4. Return `false` if `a` and `b` have different axes
+ 5. Return `false` if applying `equalsbyfield` on any corresponding element in `a` and `b` returns `false`
+ 6. If none of the above, return `true`
+
+If `recursive==false`, `equals` instead of `equalsbyfield` is applied in step 5
+"""
+function equalsbyfield(equals, a::AbstractArray, b::AbstractArray; recursive=true, typeequality=(x,y)->typeof(x)==typeof(y))
+    equals(a, b) && return true
+    typeequality(a, b) || return false
+    if !all(hasmethod(iterate, (typeof(x),)) for x in [a,b]) || !all(hasmethod(axes, (typeof(x),)) for x in [a,b])
+        @warn "Missing iterate or axes method"
+        return false
+    end
+    axes(a) == axes(b) || return false
+    if recursive
+        return all(equalsbyfield(equals, x, y; typeequality) for (x,y) in zip(a, b))
+    else
+        return all(equals(x, y) for (x,y) in zip(a, b))
+    end
+end
+
+"""
     equalsbyfield(a, b; recursive=true)
 
 Equivalent to `equalsbyfield(==, a, b; recursive)`
