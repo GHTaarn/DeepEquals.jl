@@ -1,6 +1,7 @@
 module EqualsByField
 
 export equalsbyfield, ≗
+VERSION >= v"1.11-alpha" && eval(Meta.parse("public opsettings"))
 
 """
     equalsbyfield(equals, a, b; recursive=true, typeequality=(x,y)->typeof(x)==typeof(y))
@@ -100,6 +101,12 @@ Equivalent to `equalsbyfield(==, a, b; recursive)`
 """
 equalsbyfield(a, b; recursive=true) = equalsbyfield(==, a, b; recursive)
 
+"""
+    EqualsByField.opsettings::Dict{Symbol,Any}
+
+The settings for the [`≗`](@ref) operator. These are initially set to
+`:equals=>(==)`, `:recursive=>true` and `:typeequality=>(x,y)->typeof(x)==typeof(y)`
+"""
 const opsettings = Dict((:equals=>(==), :recursive=>true, :typeequality=>(x,y)->typeof(x)==typeof(y)))
 
 """
