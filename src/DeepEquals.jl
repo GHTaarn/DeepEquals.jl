@@ -1,5 +1,5 @@
 module DeepEquals
 
-include("EqualsByField.jl")
+include("core.jl")
 
 end # module DeepEquals
