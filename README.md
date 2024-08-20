@@ -1,4 +1,4 @@
-# EqualsByField
+# DeepEquals
 
 A package for doing customised comparison of objects, especially focussed on
 itemwise comparison of composite objects.
@@ -7,7 +7,7 @@ itemwise comparison of composite objects.
 
 ```
 using Pkg
-pkg"add https://github.com/GHTaarn/EqualsByField.jl"
+pkg"add https://github.com/GHTaarn/DeepEquals.jl"
 ```
 
 ## Use
@@ -19,7 +19,7 @@ There are two exported symbols:
 ### Example
 
 ```julia-repl
-julia> using EqualsByField
+julia> using DeepEquals
 
 julia> struct A
        a
@@ -47,6 +47,6 @@ julia>
 
 [StructEquality.jl](https://github.com/jolin-io/StructEquality.jl) is a good
 package for generating `==`, `isequal` and `isapprox` methods for structs.
-`EqualsByField.jl` is preferable when one wishes to do specialised comparisons
+`DeepEquals.jl` is preferable when one wishes to do specialised comparisons
 that do not easily translate to `==`, `isequal` or `isapprox`.
 
