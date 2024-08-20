@@ -1,7 +1,7 @@
 module EqualsByField
 
 export equalsbyfield, ≗
-VERSION >= v"1.11-alpha" && eval(Meta.parse("public opsettings"))
+VERSION >= v"1.11-alpha" && eval(Meta.parse("public opsettings, naneq"))
 
 """
     equalsbyfield(equals, a, b; recursive=true, typeequality=(x,y)->typeof(x)==typeof(y))
@@ -102,15 +102,34 @@ Equivalent to `equalsbyfield(==, a, b; recursive)`
 equalsbyfield(a, b; recursive=true) = equalsbyfield(==, a, b; recursive)
 
 """
+    naneq(a, b)
+
+Return `true` if `a == b` or if both `a` and `b` are `missing`. Also, if
+both `a` and `b` are `AbstractFloat` and `isnan` is `true` on both, then `true`
+is also returned.
+Return `false` in all other cases.
+"""
+naneq(a, b) = a == b
+naneq(a::AbstractFloat, b::AbstractFloat) = a == b || all(isnan.((a,b)))
+naneq(a::Missing, b::Missing) = true
+naneq(a, b::Missing) = false
+naneq(a::Missing, b) = false
+
+"""
     EqualsByField.opsettings::Dict{Symbol,Any}
 
 The settings for the [`≗`](@ref) operator. These are initially set to
-`:equals=>(==)`, `:recursive=>true` and `:typeequality=>(x,y)->typeof(x)==typeof(y)`
+`:equals=>EqualsByField.naneq`, `:recursive=>true` and `:typeequality=>(x,y)->typeof(x)==typeof(y)`
 """
-const opsettings = Dict((:equals=>(==), :recursive=>true, :typeequality=>(x,y)->typeof(x)==typeof(y)))
+const opsettings = Dict((:equals=>naneq, :recursive=>true, :typeequality=>(x,y)->typeof(x)==typeof(y)))
 
 """
     ≗(a, b)
+
+A special equality operator with the following properties:
+
+ 1. For any deterministic function `f`, `f(x...) ≗ f(x...)` always returns `true`.
+ 2. `a ≗ b` must return `false` if `a` and `b` cannot have been produced by a deterministic function with the same input.
 
 Shorthand for `equalsbyfield(EqualsByField.opsettings[:equals], a, b; recursive=EqualsByField.opsettings[:recursive], typeequality=EqualsByField.opsettings[:typeequality])`
 """

@@ -1,7 +1,7 @@
 # EqualsByField
 
 A package for doing customised comparison of objects, especially focussed on
-fieldwise comparison of composite objects.
+itemwise comparison of composite objects.
 
 ## Installation
 
@@ -14,7 +14,7 @@ pkg"add https://github.com/GHTaarn/EqualsByField.jl"
 
 There are two exported symbols:
  - `equalsbyfield` which is a versatile comparison function
- - `≗` - a customisable binary operator version of `equalsbyfield`
+ - `≗` - a binary operator version of `equalsbyfield` that handles `NaN` and `missing` values in a similar way to `Base.isequal`
 
 ### Example
 
@@ -32,8 +32,8 @@ false
 julia> A(1,[2,3]) ≗ A(1,[2,3])
 true
 
-julia> A(1,[2,NaN]) ≗ A(1,[2,NaN])
-false
+julia> A(missing,[2,NaN]) ≗ A(missing,[2,NaN])
+true
 
 julia> equalsbyfield(A(1,[2,NaN]), A(1,[2,NaN])) do x, y
        x == y || (all(typeof.([x,y]) .<: AbstractFloat) && all(isnan.([x,y])))
@@ -45,8 +45,8 @@ julia>
 
 ## Related packages
 
-If one wishes to do fieldwise comparison of structs then it is often preferable
-to use [StructEquality.jl](https://github.com/jolin-io/StructEquality.jl).
+[StructEquality.jl](https://github.com/jolin-io/StructEquality.jl) is a good
+package for generating `==`, `isequal` and `isapprox` methods for structs.
 `EqualsByField.jl` is preferable when one wishes to do specialised comparisons
 that do not easily translate to `==`, `isequal` or `isapprox`.
 
