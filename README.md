@@ -13,8 +13,8 @@ pkg"add https://github.com/GHTaarn/DeepEquals.jl"
 ## Use
 
 There are two exported symbols:
- - `equalsbyfield` which is a versatile comparison function
- - `≗` - a binary operator version of `equalsbyfield` that handles `NaN` and `missing` values in a similar way to `Base.isequal`
+ - `deepequals` which is a versatile comparison function
+ - `≗` - a binary operator version of `deepequals` that handles `NaN` and `missing` values in a similar way to `Base.isequal`
 
 ### Example
 
@@ -35,7 +35,7 @@ true
 julia> A(missing,[2,NaN]) ≗ A(missing,[2,NaN])
 true
 
-julia> equalsbyfield(A(1,[2,NaN]), A(1,[2,NaN])) do x, y
+julia> deepequals(A(1,[2,NaN]), A(1,[2,NaN])) do x, y
        x == y || (all(typeof.([x,y]) .<: AbstractFloat) && all(isnan.([x,y])))
        end
 true

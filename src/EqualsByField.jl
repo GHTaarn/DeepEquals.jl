@@ -1,9 +1,9 @@
 
-export equalsbyfield, ≗
+export deepequals, ≗
 VERSION >= v"1.11-alpha" && eval(Meta.parse("public opsettings, naneq"))
 
 """
-    equalsbyfield(equals, a, b; recursive=true, typeequality=(x,y)->typeof(x)==typeof(y))
+    deepequals(equals, a, b; recursive=true, typeequality=(x,y)->typeof(x)==typeof(y))
 
 Test for equality of `a` and `b` in a customisable way.
 The return value is determined from the following sequence:
@@ -12,10 +12,10 @@ The return value is determined from the following sequence:
  2. Return `false` if `!typeequality(a,b)`
  3. Return `false` if either `a` or `b` has no fields
  4. Return `false` if `a` and `b` have different fields
- 5. Return `false` if applying `equalsbyfield` on any field in `a` and `b` returns `false`
+ 5. Return `false` if applying `deepequals` on any field in `a` and `b` returns `false`
  6. If none of the above, return `true`
 
-If `recursive==false`, `equals` instead of `equalsbyfield` is applied in step 5
+If `recursive==false`, `equals` instead of `deepequals` is applied in step 5
 
 ## Example
 
@@ -26,7 +26,7 @@ struct A
 end
 
 # The following line returns true even though A(1,[2,3]) != A(1,[2,3])
-equalsbyfield(==, A(1,[2,3]), A(1,[2,3]))
+deepequals(==, A(1,[2,3]), A(1,[2,3]))
 
 struct B
     b
@@ -35,7 +35,7 @@ end
 
 # The following expression also returns true due to the custom
 # `equals` function and the type check in step 2 being switched off
-equalsbyfield(A(1,[2,3]), B([2,3], 1.5); typeequality=Returns(true)) do x, y
+deepequals(A(1,[2,3]), B([2,3], 1.5); typeequality=Returns(true)) do x, y
     if any(typeof.([x, y]) .<: AbstractFloat)
         abs(x-y) < 1
     else
@@ -44,7 +44,7 @@ equalsbyfield(A(1,[2,3]), B([2,3], 1.5); typeequality=Returns(true)) do x, y
 end
 ```
 """
-function equalsbyfield(equals, a, b; recursive=true, typeequality=(x,y)->typeof(x)==typeof(y))
+function deepequals(equals, a, b; recursive=true, typeequality=(x,y)->typeof(x)==typeof(y))
     equals(a, b) && return true
     typeequality(a, b) || return false
     fna = fieldnames(typeof(a))
@@ -53,7 +53,7 @@ function equalsbyfield(equals, a, b; recursive=true, typeequality=(x,y)->typeof(
     isempty(fna) && return false # This assumes !equals(a,b) which should be the case for immutables and a decent equals function
     if recursive
         for fn in fna
-            equalsbyfield(equals, getfield(a, fn), getfield(b, fn); typeequality) || return false
+            deepequals(equals, getfield(a, fn), getfield(b, fn); typeequality) || return false
         end
     else
         for fn in fna
@@ -64,7 +64,7 @@ function equalsbyfield(equals, a, b; recursive=true, typeequality=(x,y)->typeof(
 end
 
 """
-    equalsbyfield(equals, a::AbstractArray, b::AbstractArray; recursive=true, typeequality=(x,y)->typeof(x)==typeof(y))
+    deepequals(equals, a::AbstractArray, b::AbstractArray; recursive=true, typeequality=(x,y)->typeof(x)==typeof(y))
 
 Test for equality of `a` and `b` in a customisable way.
 The return value is determined from the following sequence:
@@ -73,12 +73,12 @@ The return value is determined from the following sequence:
  2. Return `false` if `!typeequality(a,b)`
  3. Return `false` if there is no `axes` or `iterate` method for either `a` or `b`
  4. Return `false` if `a` and `b` have different axes
- 5. Return `false` if applying `equalsbyfield` on any corresponding element in `a` and `b` returns `false`
+ 5. Return `false` if applying `deepequals` on any corresponding element in `a` and `b` returns `false`
  6. If none of the above, return `true`
 
-If `recursive==false`, `equals` instead of `equalsbyfield` is applied in step 5
+If `recursive==false`, `equals` instead of `deepequals` is applied in step 5
 """
-function equalsbyfield(equals, a::AbstractArray, b::AbstractArray; recursive=true, typeequality=(x,y)->typeof(x)==typeof(y))
+function deepequals(equals, a::AbstractArray, b::AbstractArray; recursive=true, typeequality=(x,y)->typeof(x)==typeof(y))
     equals(a, b) && return true
     typeequality(a, b) || return false
     if !all(hasmethod(iterate, (typeof(x),)) for x in [a,b]) || !all(hasmethod(axes, (typeof(x),)) for x in [a,b])
@@ -87,18 +87,18 @@ function equalsbyfield(equals, a::AbstractArray, b::AbstractArray; recursive=tru
     end
     axes(a) == axes(b) || return false
     if recursive
-        return all(equalsbyfield(equals, x, y; typeequality) for (x,y) in zip(a, b))
+        return all(deepequals(equals, x, y; typeequality) for (x,y) in zip(a, b))
     else
         return all(equals(x, y) for (x,y) in zip(a, b))
     end
 end
 
 """
-    equalsbyfield(a, b; recursive=true)
+    deepequals(a, b; recursive=true)
 
-Equivalent to `equalsbyfield(==, a, b; recursive)`
+Equivalent to `deepequals(==, a, b; recursive)`
 """
-equalsbyfield(a, b; recursive=true) = equalsbyfield(==, a, b; recursive)
+deepequals(a, b; recursive=true) = deepequals(==, a, b; recursive)
 
 """
     naneq(a, b)
@@ -130,7 +130,7 @@ A special equality operator with the following properties:
  1. For any deterministic function `f`, `f(x...) ≗ f(x...)` always returns `true`.
  2. `a ≗ b` must return `false` if `a` and `b` cannot have been produced by a deterministic function with the same input.
 
-Shorthand for `equalsbyfield(DeepEquals.opsettings[:equals], a, b; recursive=DeepEquals.opsettings[:recursive], typeequality=DeepEquals.opsettings[:typeequality])`
+Shorthand for `deepequals(DeepEquals.opsettings[:equals], a, b; recursive=DeepEquals.opsettings[:recursive], typeequality=DeepEquals.opsettings[:typeequality])`
 """
-≗(a, b) = equalsbyfield(opsettings[:equals], a, b; recursive=opsettings[:recursive], typeequality=opsettings[:typeequality])
+≗(a, b) = deepequals(opsettings[:equals], a, b; recursive=opsettings[:recursive], typeequality=opsettings[:typeequality])
 
