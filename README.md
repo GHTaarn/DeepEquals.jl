@@ -22,6 +22,9 @@ that has been calculated in a slightly different way.
 By default, the `≗` operator will handle simple cases correctly and can be
 tweaked if necessary.
 
+In the REPL `≗` can be typed with `\circeq` followed by pressing the `Tab` key.
+It has Unicode codepoint 0x2257.
+
 ### Example
 
 ```julia-repl
